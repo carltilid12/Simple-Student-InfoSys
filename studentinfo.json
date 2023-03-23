@@ -1,0 +1,20 @@
+[
+  {
+    "firstName": "Carl",
+    "course": "bscs",
+    "year": 2,
+    "idNumber": 20210728
+  },
+  {
+    "firstName": "Carl",
+    "course": "bscs",
+    "year": 2,
+    "idNumber": 20210728
+  },
+  {
+    "firstName": "Viper",
+    "course": "bschem",
+    "year": 10,
+    "idNumber": 20202020
+  }
+]
