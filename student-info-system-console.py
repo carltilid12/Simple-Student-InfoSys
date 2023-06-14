@@ -7,6 +7,16 @@ import tkinter as tk
 import tkinter.font as font
 import webbrowser
 
+def updateStudent(student):
+    with open("studentinfo.txt", "w") as p:
+        for i in student:
+            p.write((', '.join(str(e) for e in i))+'\n')
+
+def updateCourse(courses):
+    with open("courses.txt", "w") as p:
+        for i in courses:
+            p.write(i+'\n')
+
 #Simple Console Version 
 print("Simple Student Information System\n")
 
@@ -19,10 +29,12 @@ student = []
 for line in read:
     student.append(list(map(str, line[:-1].split(", "))))
 
+file = open('courses.txt', 'r')
+read = file.readlines()
+
 courses = []
-courses = set(courses)
-for i in student:
-    courses.add(i[2])
+for line in read:
+    courses.append(line[:-1])
 
 print("Enter the number corresponding to your choice")
 #Selection Mode
@@ -45,8 +57,9 @@ while(True):
         case 2:
             print("Enter Course Name: ")
             course = input()
-            courses.add(course)
+            courses.append(course)
             print("Added "+course+" to list of courses")
+            updateCourse(courses)
 
         case 3:
             print("Input Course to be deleted")
@@ -63,6 +76,7 @@ while(True):
                             if i[2] == deletecourse:
                                 student.remove(i)
                         courses.remove(deletecourse)
+                        updateCourse(courses)
                     case _:
                         print("Canceling Operation")
             else:
@@ -80,7 +94,8 @@ while(True):
                     if i[2] == editcourse:
                         i[2] = newcourse
                 courses.remove(editcourse)
-                courses.add(newcourse)
+                courses.append(newcourse)
+                updateCourse(courses)
             else:
                 print("Could Not Find the Course")
             
@@ -90,6 +105,7 @@ while(True):
                 print(i)
             selectedcourse = input("Select: ")
             if selectedcourse in courses:
+                
                 print("\nNow Viewing Course Student Options")
                 while(True):
                     print("Add Student Information = 1")
@@ -106,6 +122,7 @@ while(True):
                             info.append(selectedcourse)
                             #Append Info As a List
                             student.append(info)
+                            updateStudent(student)
                         
                         case 2: #Edit Student Information Choice
                             replace = input("Enter Student idNumber to be Replaced (xxxx-xxxx): ")
@@ -118,6 +135,7 @@ while(True):
                                     student.remove(i)
                                     student.append(info)
                                     break
+                            updateStudent(student)
 
                         case 3: #Delete Student Information Choice
 
@@ -131,7 +149,7 @@ while(True):
                                     print("Deleted")
                                     student.remove(i)
                                     break
-                                
+                            updateStudent(student)    
 
                         case 4: #Display the List of students\
                             for i in student:        
@@ -156,6 +174,7 @@ while(True):
 
 
 #Writes the txt file with the updated version of the student list
-with open("studentinfo.txt", "w") as p:
-    for i in student:
-        p.write((', '.join(str(e) for e in i))+'\n')
+
+with open("courses.txt", "w") as p:
+    for i in courses:
+        p.write(i+'\n')
