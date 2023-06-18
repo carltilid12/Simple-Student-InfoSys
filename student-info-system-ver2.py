@@ -117,7 +117,7 @@ def add_student():
     def save_student():
         name = entries["Name"].get()
         id_no = entries["ID No"].get()
-        course = course_dropdown.get()  # Get the selected course from the dropdown menu
+        course = course_dropdown_dialog.get()  # Get the selected course from the dropdown menu
         gender = gender_dropdown.get()  # Get the selected gender from the dropdown menu
 
         if name and id_no and course and gender:
@@ -314,51 +314,65 @@ window.geometry("800x600")
 window.configure(bg="#a41c20")
 window.resizable(False, False)
 
+# STYLE
+buttonStyle = ttk.Style()
+buttonStyle.configure("TButton", 
+                      width=13, # Set Width
+                      height=1 # Set Height
+                      )
+
+treeViewStyle = ttk.Style()
+treeViewStyle.configure("Treeview",
+                background="#f0f0f0",
+                foreground="#000000",
+                height=20,
+                relief="ridge"
+                )
+
+
 # COURSE 
-course_button = tk.Button(window, text="Select Course  ", command=show_students)
+course_button = ttk.Button(window, text="Select Course", command=show_students, style="TButton")
 course_button.place(x=10, y=10)
 
-course_dropdown = ttk.Combobox(window, values=get_courses())
-course_dropdown.place(x=120, y=10)
+course_dropdown = ttk.Combobox(window, values=get_courses(), width=23)
+course_dropdown.place(x=110, y=10)
 course_dropdown.current(0)
 
-add_course_button = tk.Button(window, text="Add Course ", command=add_course)
+add_course_button = ttk.Button(window, text="Add Course ", command=add_course, style="TButton")
 add_course_button.place(x=280, y=10)
 
-edit_course_button = tk.Button(window, text="Edit Course ", command=edit_course)
+edit_course_button = ttk.Button(window, text="Edit Course", command=edit_course, style="TButton")
 edit_course_button.place(x=380, y=10)
 
-delete_course_button = tk.Button(window, text="Delete Course ", command=delete_course)
+delete_course_button = ttk.Button(window, text="Delete Course ", command=delete_course, style="TButton")
 delete_course_button.place(x=480, y=10)
 
-# SEARCH
-
-search_button = tk.Button(window, text="Search Student", command=search_students)
+# STUDENTS
+search_button = ttk.Button(window, text="Search Student", command=search_students, style="TButton")
 search_button.place(x=10, y=40)
 
-search_entry = tk.Entry(window)
-search_entry.place(x=120, y=40)
+search_entry = ttk.Entry(window, width=26)
+search_entry.place(x=110, y=40)
 
-# STUDENT
-
-add_student_button = tk.Button(window, text="Add Student", command=add_student)
+add_student_button = ttk.Button(window, text="Add Student", command=add_student, style="TButton")
 add_student_button.place(x=280, y=40)
 
-edit_student_button = tk.Button(window, text="Edit Student", command=edit_student)
+edit_student_button = ttk.Button(window, text="Edit Student", command=edit_student, style="TButton")
 edit_student_button.place(x=380, y=40)
 
-delete_student_button = tk.Button(window, text="Delete Student", command=delete_student)
+delete_student_button = ttk.Button(window, text="Delete Student", command=delete_student, style="TButton")
 delete_student_button.place(x=480, y=40)
 
-#show_students_button = tk.Button(window, text="Show Students", command=show_students)
+#show_students_button = ttk.Button(window, text="Show Students", command=show_students)
 #show_students_button.place(x=280, y=70)
 
 # Create a table to display student information
-student_table = ttk.Treeview(window, columns=("Name", "ID No", "Gender", "Course Code"), show="headings", height=20)
+student_table = ttk.Treeview(window, columns=("Name", "ID No", "Gender", "Course Code"), show="headings", height=20, style="Treeview")
 student_table.heading("Name", text="Name")
 student_table.heading("ID No", text="ID No")
 student_table.heading("Gender", text="Gender")
 student_table.heading("Course Code", text="Course Code")
+student_table.tag_configure("odd", background="white")
 student_table.place(x=0,y=80)
 
 # Run the main event loop
