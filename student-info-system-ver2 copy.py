@@ -19,6 +19,7 @@ def add_course():
 
     # Update the course dropdown menu with the new course
     course_dropdown["values"] = get_courses()
+    show_students()
 
 def edit_course():
     selected_course = course_dropdown.get()
@@ -71,9 +72,9 @@ def delete_course():
 
         # Update the course dropdown menu with the updated list of courses
         course_dropdown["values"] = get_courses()
-
+        course_dropdown.current(0)
+        show_students()
         # Clear the entry fields and student table
-        course_dropdown.set("")
 
 def clear_table():
     student_table.delete(*student_table.get_children())
@@ -116,7 +117,7 @@ def add_student():
     def save_student():
         name = entries["Name"].get()
         id_no = entries["ID No"].get()
-        course = course_dropdown.get()  # Get the selected course from the dropdown menu
+        course = course_dropdown_dialog.get()  # Get the selected course from the dropdown menu
         gender = gender_dropdown.get()  # Get the selected gender from the dropdown menu
 
         if name and id_no and course and gender:
@@ -237,6 +238,36 @@ def edit_student():
         else:
             messagebox.showerror("Error", "Selected student not found.")
 
+def delete_student():
+    selected_item = student_table.selection()
+    if selected_item:
+        id_no = student_table.item(selected_item, "values")[1]  # Get the ID_No of the selected student
+        course = course_dropdown.get()
+
+        conn = sqlite3.connect("students.db")
+        cursor = conn.cursor()
+
+        cursor.execute(f"SELECT Name, ID_No, Gender, Course_Code FROM {course} WHERE ID_No=?", (id_no,))
+        student_info = cursor.fetchone()
+
+        conn.close()
+
+        if student_info:
+            confirm = messagebox.askyesno("Delete Student", "Are you sure you want to delete this student?")
+            if confirm:
+                conn = sqlite3.connect("students.db")
+                cursor = conn.cursor()
+
+                # Delete the student from the course table
+                cursor.execute(f"DELETE FROM {course} WHERE ID_No=?", (id_no,))
+
+                conn.commit()
+                conn.close()
+
+                show_students()
+        else:
+            messagebox.showerror("Error", "Selected student not found.")
+
 def show_students():
     course = course_dropdown.get()
 
@@ -255,52 +286,95 @@ def show_students():
     for student in students:
         student_table.insert('', 'end', values=(student[0], student[1], student[2], student[3]))
 
+# SEARCH FUNCTIONS
+
+def search_students():
+    search_query = search_entry.get().lower()  # Get the search query from an Entry widget
+
+    # Clear previous selections
+    student_table.selection_remove(student_table.selection())
+
+    for child in student_table.get_children():
+        values = student_table.item(child, "values")
+        if any(search_query in str(value).lower() for value in values):
+            student_table.selection_add(child)  # Add the matching item to the selection
+
+    num_matches = len(student_table.selection())
+    if num_matches > 0:
+        return
+    else:
+        messagebox.showinfo("Search", "No matching students found.")
+
+
 ###################### Create the main window ###########################
 
 window = tk.Tk()
 window.title("Student Information Management System")
 window.geometry("800x600")
+window.configure(bg="#a41c20")
 window.resizable(False, False)
 
+# STYLE
+buttonStyle = ttk.Style()
+buttonStyle.configure("TButton", 
+                      width=13, # Set Width
+                      height=1 # Set Height
+                      )
+
+treeViewStyle = ttk.Style()
+treeViewStyle.configure("Treeview",
+                background="#f0f0f0",
+                foreground="#000000",
+                height=20,
+                relief="ridge"
+                )
+
+
 # COURSE 
-course_label = tk.Label(window, text="Course:")
-course_label.place(x=10, y=10)
+course_button = ttk.Button(window, text="Select Course", command=show_students, style="TButton")
+course_button.place(x=10, y=10)
 
-course_dropdown = ttk.Combobox(window, values=get_courses())
-course_dropdown.place(x=100, y=10)
+course_dropdown = ttk.Combobox(window, values=get_courses(), width=23)
+course_dropdown.place(x=110, y=10)
+course_dropdown.current(0)
 
-add_course_button = tk.Button(window, text="Add Course", command=add_course)
+add_course_button = ttk.Button(window, text="Add Course ", command=add_course, style="TButton")
 add_course_button.place(x=280, y=10)
 
-edit_course_button = tk.Button(window, text="Edit Course", command=edit_course)
+edit_course_button = ttk.Button(window, text="Edit Course", command=edit_course, style="TButton")
 edit_course_button.place(x=380, y=10)
 
-delete_course_button = tk.Button(window, text="Delete Course", command=delete_course)
+delete_course_button = ttk.Button(window, text="Delete Course ", command=delete_course, style="TButton")
 delete_course_button.place(x=480, y=10)
 
-# STUDENT
-search_label = tk.Label(window, text="Search Student:")
-search_label.place(x=10, y=40)
+# STUDENTS
+search_button = ttk.Button(window, text="Search Student", command=search_students, style="TButton")
+search_button.place(x=10, y=40)
 
-search_label = tk.Entry(window, text="Search Student:")
-search_label.place(x=100, y=40)
+search_entry = ttk.Entry(window, width=26)
+search_entry.place(x=110, y=40)
 
-add_student_button = tk.Button(window, text="Add Student", command=add_student)
+add_student_button = ttk.Button(window, text="Add Student", command=add_student, style="TButton")
 add_student_button.place(x=280, y=40)
 
-show_students_button = tk.Button(window, text="Show Students", command=show_students)
-show_students_button.place(x=380, y=40)
+edit_student_button = ttk.Button(window, text="Edit Student", command=edit_student, style="TButton")
+edit_student_button.place(x=380, y=40)
 
-edit_student_button = tk.Button(window, text="Edit Student", command=edit_student)
-edit_student_button.place(x=480, y=40)
+delete_student_button = ttk.Button(window, text="Delete Student", command=delete_student, style="TButton")
+delete_student_button.place(x=480, y=40)
+
+#show_students_button = ttk.Button(window, text="Show Students", command=show_students)
+#show_students_button.place(x=280, y=70)
 
 # Create a table to display student information
-student_table = ttk.Treeview(window, columns=("Name", "ID No", "Gender", "Course Code"), show="headings")
+student_table = ttk.Treeview(window, columns=("Name", "ID No", "Gender", "Course Code"), show="headings", height=20, style="Treeview")
 student_table.heading("Name", text="Name")
 student_table.heading("ID No", text="ID No")
 student_table.heading("Gender", text="Gender")
 student_table.heading("Course Code", text="Course Code")
-student_table.place(x=0,y=150)
+student_table.tag_configure("odd", background="white")
+student_table.place(x=0,y=80)
 
 # Run the main event loop
+show_students()
 window.mainloop()

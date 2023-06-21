@@ -12,7 +12,7 @@ def add_course():
     conn = sqlite3.connect("students.db")
     cursor = conn.cursor()
 
-    cursor.execute(f"CREATE TABLE IF NOT EXISTS {course} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, id_no TEXT, gender TEXT, course_code TEXT)")
+    cursor.execute(f"CREATE TABLE IF NOT EXISTS {course} (id_no TEXT PRIMARY KEY, name TEXT, gender TEXT, course_code TEXT)")
 
     conn.commit()
     conn.close()
@@ -85,6 +85,18 @@ def add_student():
     dialog = Toplevel()
     dialog.title("Add Student")
 
+    # CENTER POP UP
+    dialog_width = 300
+    dialog_height = 200
+
+    screen_width = dialog.winfo_screenwidth()
+    screen_height = dialog.winfo_screenheight()
+
+    x = (screen_width / 2) - (dialog_width / 2)
+    y = (screen_height / 2) - (dialog_height / 2)
+
+    dialog.geometry(f"{dialog_width}x{dialog_height}+{int(x)}+{int(y)}")
+
     fields = ["Name", "ID No"]
     entries = {}
 
@@ -92,7 +104,7 @@ def add_student():
         label = Label(dialog, text=field)
         label.grid(row=i, column=0, padx=5, pady=5)
 
-        entry = Entry(dialog)
+        entry = Entry(dialog, width=32)
         entry.grid(row=i, column=1, padx=5, pady=5)
 
         entries[field] = entry
@@ -132,9 +144,11 @@ def add_student():
             conn = sqlite3.connect("students.db")
             cursor = conn.cursor()
 
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {course} (id_no TEXT PRIMARY KEY, name TEXT, gender TEXT, course_code TEXT)")
+            course_dropdown["values"] = get_courses()
             # Insert the student into the selected course table
-            cursor.execute(f"INSERT INTO {course} (Name, ID_No, Gender, Course_Code) VALUES (?, ?, ?, ?)",
-                           (name, id_no, gender, course))
+            cursor.execute(f"INSERT INTO {course} (ID_No, Name, Gender, Course_Code) VALUES (?, ?, ?, ?)",
+                           (id_no, name, gender, course))
 
             conn.commit()
             conn.close()
@@ -150,13 +164,13 @@ def add_student():
 def edit_student():
     selected_item = student_table.selection()
     if selected_item:
-        id_no = student_table.item(selected_item, "values")[1]  # Get the ID_No of the selected student
-        course = course_dropdown.get()
+        id_no = student_table.item(selected_item, "values")[0]  # Get the ID_No of the selected student
+        course = student_table.item(selected_item, "values")[3]
 
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
 
-        cursor.execute(f"SELECT Name, ID_No, Gender, Course_Code FROM {course} WHERE ID_No=?", (id_no,))
+        cursor.execute(f"SELECT ID_No, Name, Gender, Course_Code FROM {course} WHERE ID_No=?", (id_no,))
         student_info = cursor.fetchone()
 
         conn.close()
@@ -165,14 +179,23 @@ def edit_student():
             dialog = Toplevel()
             dialog.title("Edit Student")
 
+            # CENTER POP UP
+            dialog_width = 300
+            dialog_height = 200
+            screen_width = dialog.winfo_screenwidth()
+            screen_height = dialog.winfo_screenheight()
+            x = (screen_width / 2) - (dialog_width / 2)
+            y = (screen_height / 2) - (dialog_height / 2)
+            dialog.geometry(f"{dialog_width}x{dialog_height}+{int(x)}+{int(y)}")
+
             fields = ["Name", "ID No"]
             entries = {}
 
             for i, field in enumerate(fields):
-                label = Label(dialog, text=field)
+                label = Label(dialog, text=field,)
                 label.grid(row=i, column=0, padx=5, pady=5)
 
-                entry = Entry(dialog)
+                entry = Entry(dialog, width=32)
                 entry.grid(row=i, column=1, padx=5, pady=5)
                 entry.insert(0, student_info[i])  # Set the current student information in the entry fields
 
@@ -213,17 +236,16 @@ def edit_student():
 
                     conn = sqlite3.connect("students.db")
                     cursor = conn.cursor()
-
                     if course != new_course:
                         # Move the student to a different course
-                        cursor.execute(f"INSERT INTO {new_course} (Name, ID_No, Gender, Course_Code) VALUES (?, ?, ?, ?)",
-                                       (name, new_id_no, gender, new_course))
+                        cursor.execute(f"INSERT INTO {course} (ID_No, Name, Gender, Course_Code) VALUES (?, ?, ?, ?)",
+                           (new_id_no, name, gender, course))
 
                         # Delete the student from the current course
                         cursor.execute(f"DELETE FROM {course} WHERE ID_No=?", (id_no,))
                     else:
                         # Update the student information in the current course
-                        cursor.execute(f"UPDATE {course} SET Name=?, ID_No=?, Gender=? WHERE ID_No=?", (name, new_id_no, gender, id_no))
+                        cursor.execute(f"UPDATE {course} SET ID_No=?, Name=?, Gender=? WHERE ID_No=?", (new_id_no, name, gender, id_no))
 
                     conn.commit()
                     conn.close()
@@ -241,13 +263,13 @@ def edit_student():
 def delete_student():
     selected_item = student_table.selection()
     if selected_item:
-        id_no = student_table.item(selected_item, "values")[1]  # Get the ID_No of the selected student
-        course = course_dropdown.get()
+        id_no = student_table.item(selected_item, "values")[0]  # Get the ID_No of the selected student
+        course = student_table.item(selected_item, "values")[3]
 
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
 
-        cursor.execute(f"SELECT Name, ID_No, Gender, Course_Code FROM {course} WHERE ID_No=?", (id_no,))
+        cursor.execute(f"SELECT ID_No, Name, Gender, Course_Code FROM {course} WHERE ID_No=?", (id_no,))
         student_info = cursor.fetchone()
 
         conn.close()
@@ -274,7 +296,7 @@ def show_students():
     conn = sqlite3.connect("students.db")
     cursor = conn.cursor()
 
-    cursor.execute(f"SELECT name, id_no, gender, course_code FROM {course}")
+    cursor.execute(f"SELECT id_no, name, gender, course_code FROM {course}")
     students = cursor.fetchall()
 
     conn.close()
@@ -285,6 +307,27 @@ def show_students():
     # Display student information in a table
     for student in students:
         student_table.insert('', 'end', values=(student[0], student[1], student[2], student[3]))
+
+def show_all_students():
+    # Clear existing items in the tree view
+    clear_table()
+
+    # Fetch all courses
+    courses = get_courses()
+
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor()
+
+    # Iterate over each course
+    for course in courses:
+        cursor.execute(f"SELECT id_no, name, gender, course_code FROM {course}")
+        students = cursor.fetchall()
+
+        # Add students to the tree view
+        for student in students:
+            student_table.insert('', 'end', values=(student[0], student[1], student[2], student[3]))
+
+    conn.close()
 
 # SEARCH FUNCTIONS
 
@@ -318,7 +361,6 @@ window.resizable(False, False)
 buttonStyle = ttk.Style()
 buttonStyle.configure("TButton", 
                       width=13, # Set Width
-                      height=1 # Set Height
                       )
 
 treeViewStyle = ttk.Style()
@@ -336,7 +378,8 @@ course_button.place(x=10, y=10)
 
 course_dropdown = ttk.Combobox(window, values=get_courses(), width=23)
 course_dropdown.place(x=110, y=10)
-course_dropdown.current(0)
+if len(course_dropdown["values"]) > 0:
+    course_dropdown.current(0)
 
 add_course_button = ttk.Button(window, text="Add Course ", command=add_course, style="TButton")
 add_course_button.place(x=280, y=10)
@@ -363,18 +406,17 @@ edit_student_button.place(x=380, y=40)
 delete_student_button = ttk.Button(window, text="Delete Student", command=delete_student, style="TButton")
 delete_student_button.place(x=480, y=40)
 
-#show_students_button = ttk.Button(window, text="Show Students", command=show_students)
-#show_students_button.place(x=280, y=70)
+show_all_students_button = ttk.Button(window, text="Show ALL Students", command=show_all_students, width=26)
+show_all_students_button.place(x=580, y=40)
 
 # Create a table to display student information
-student_table = ttk.Treeview(window, columns=("Name", "ID No", "Gender", "Course Code"), show="headings", height=20, style="Treeview")
+student_table = ttk.Treeview(window, columns=("ID No.", "Name", "Gender", "Course Code"), show="headings", height=20, style="Treeview")
+student_table.heading("ID No.", text="ID No")
 student_table.heading("Name", text="Name")
-student_table.heading("ID No", text="ID No")
 student_table.heading("Gender", text="Gender")
 student_table.heading("Course Code", text="Course Code")
-student_table.tag_configure("odd", background="white")
 student_table.place(x=0,y=80)
 
 # Run the main event loop
-show_students()
+show_all_students()
 window.mainloop()
