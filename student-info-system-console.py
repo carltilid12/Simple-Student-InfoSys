@@ -44,8 +44,12 @@ while(True):
     print("Add Course = 2")
     print("Delete Course = 3")
     print("Edit Course Name = 4")
-    print("Select Course = 5")
-    print("Exit Program = 6\n")
+    print("Display Students = 5")
+    print("Add Student Information = 6")
+    print("Edit Student Information = 7")
+    print("Delete Student Information = 8")
+    print("Search Student = 9")
+    print("Exit Program = 10\n")
     choice = int(input())
 
     match choice:
@@ -98,78 +102,93 @@ while(True):
                 courses.remove(editcourse)
                 courses.append(newcourse)
                 updateCourse(courses)
+                updateStudent(student)
             else:
                 print("Could Not Find the Course")
             
         case 5:
-            print("Select Course")
-            for i in courses:
+            print("Displaying All Students")
+            for i in student:
                 print(i)
-            selectedcourse = input("Select: ")
-            if selectedcourse in courses:
-                
-                print("\nNow Viewing Course Student Options")
-                while(True):
-                    print("Add Student Information = 1")
-                    print("Edit Student Information = 2")
-                    print("Delete Student Information = 3")
-                    print("Display Students = 4")
-                    print("Close Enter Mode = 5")
-                    choice = int(input())
-                    match choice:
-                        case 1: #Add Student Information Choice
-
-                            #Getting the information by splitting them into a list
-                            info = list(map(str, input("Enter Student Info: (firstName, idNumber): ").split(", ")))
-                            info.append(selectedcourse)
-                            #Append Info As a List
-                            student.append(info)
-                            updateStudent(student)
-                        
-                        case 2: #Edit Student Information Choice
-                            replace = input("Enter Student idNumber to be Replaced (xxxx-xxxx): ")
-
-                            for i in reversed(student):
-                                if (i[2] == selectedcourse and i[1] == replace):
-                                    print(i)
-                                    info = list(map(str, input("Enter New Student Info: (firstName, idNumber): ").split(", ")))
-                                    info.append(selectedcourse)
-                                    student.remove(i)
-                                    student.append(info)
-                                    break
-                            updateStudent(student)
-
-                        case 3: #Delete Student Information Choice
-
-                            #Deleting a student info using the idNumber
-                            delete = input("Enter Student idNumber (xxxx-xxxx): ")
-
-                            #Delete the student with the id number
-                            for i in reversed(student):   
-                                if (i[2] == selectedcourse and i[1] == delete):
-                                    print(i)
-                                    print("Deleted")
-                                    student.remove(i)
-                                    break
-                            updateStudent(student)    
-
-                        case 4: #Display the List of students\
-                            for i in student:        
-                                if i[2] == selectedcourse:
-                                    print(i)
-
-                        
-                        case 5: #Close the Program Choice
-                            print("Program Closed")
-                            break
-
-                        case _: #Loops the program
-                            print("Invalid Option")
-                            continue         
-            else:
-                print("Could Not Find the Course")
-            
         case 6:
+            print("Add Student information")
+            print("Courses Available ", courses)
+            selectedcourse = input("Enter Student Course: ")
+            print("Students Available in Course: ")
+            for i in student:
+                if i[2] == selectedcourse:
+                    print(i[0:2])
+            if selectedcourse in courses:
+                #Add Student Information Choice
+                #Getting the information by splitting them into a list
+                info = list(map(str, input("Enter Student Info: (firstName, idNumber,): ").split(", ")))
+                info.append(selectedcourse)
+                #Append Info As a List
+                student.append(info)
+                print("Student Added")
+                updateStudent(student)
+            else:
+                print("Course Not Found")
+        case 7:
+            print("Edit Student Information")
+            print("Courses Available ", courses)
+            selectedcourse = input("Enter Student Course: ")
+            print("Students Available in Course: ")
+            for i in student:
+                if i[2] == selectedcourse:
+                    print(i[0:2])
+            if selectedcourse in courses:
+                # Edit Student Information
+                replace = input("Enter Student idNumber to be Replaced (xxxx-xxxx): ")
+                for i in reversed(student):
+                    if (i[2] == selectedcourse and i[1] == replace):
+                        print(i)
+                        info = list(map(str, input("Enter New Student Info: (firstName, idNumber): ").split(", ")))
+                        info.append(selectedcourse)
+                        student.remove(i)
+                        student.append(info)
+                        print("Student Edited")
+                        break
+                    else:
+                        print("Student Not Found")
+                updateStudent(student)
+            else:
+                print("Course Not Found")
+        case 8:
+            print("Delete Student Information")
+            print("Courses Available ", courses)
+            selectedcourse = input("Enter Student Course: ")
+            print("Students Available in Course: ")
+            for i in student:
+                if i[2] == selectedcourse:
+                    print(i[0:2])
+            if selectedcourse in courses:
+                #Deleting a student info using the idNumber
+                delete = input("Enter Student idNumber (xxxx-xxxx): ")
+
+                #Delete the student with the id number
+                for i in reversed(student):   
+                    if (i[2] == selectedcourse and i[1] == delete):
+                        print(i)
+                        print("Deleted")
+                        student.remove(i)
+                        break
+                else:
+                    print("Student Not Found")
+                updateStudent(student)    
+            else:
+                print("Course Not Found")
+        case 9:
+            print("Search Student Information")
+            search = input("Enter Student idNumber (xxxx-xxxx): ")
+            for i in student:
+                if i[1] == search:
+                    print("Student Found")
+                    print(i)
+                    break
+            else:
+                print("Student Not found")
+        case 10:
             break
         case _:
             print("Your Choice is not in the selection of choices. \nEnter the number corresponding to your choice\n")
