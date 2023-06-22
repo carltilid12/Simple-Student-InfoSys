@@ -60,7 +60,7 @@ def add_course():
 
             # Update the course dropdown menu with the new course
             course_dropdown["values"] = [course[0] for course in get_courses()]
-            show_students()
+            show_all_students()
 
     save_button = Button(dialog, text="Save", command=save_course)
     save_button.grid(row=len(fields), columnspan=2, padx=5, pady=10)
@@ -303,7 +303,7 @@ def edit_student():
 
             course_dropdown_values = course_dropdown["values"]  # Get the course dropdown values
 
-            course_dropdown_dialog = ttk.Combobox(dialog, values=course_dropdown_values)
+            course_dropdown_dialog = ttk.Combobox(dialog, values=course_dropdown_values, state="readonly")
             course_dropdown_dialog.grid(row=len(fields), column=1, padx=5, pady=5)
             course_dropdown_dialog.set(course)  # Set the current course as the default value
 
@@ -313,7 +313,7 @@ def edit_student():
             gender_var = StringVar(dialog)
             gender_var.set(student_info[2])  # Set the current gender as the default value
 
-            gender_dropdown = ttk.Combobox(dialog, textvariable=gender_var, values=["Male", "Female", "Other"])
+            gender_dropdown = ttk.Combobox(dialog, textvariable=gender_var, values=["Male", "Female", "Other"], state="readonly")
             gender_dropdown.grid(row=len(fields)+1, column=1, padx=5, pady=5)
 
             def update_student():
@@ -469,6 +469,14 @@ treeViewStyle.configure("Treeview",
                 relief="ridge"
                 )
 
+# Create tables if tables do not exist
+
+conn = sqlite3.connect("students2.db")
+cursor = conn.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS courses (course_code TEXT PRIMARY KEY, course_name TEXT)")
+cursor.execute("CREATE TABLE IF NOT EXISTS students (id_no TEXT PRIMARY KEY, name TEXT, gender TEXT, course_code TEXT, FOREIGN KEY(course_code) REFERENCES courses(course_code) ON DELETE CASCADE)")
+conn.commit()
+conn.close()
 
 # COURSE 
 course_button = ttk.Button(window, text="Select Course", command=show_students, style="TButton")
@@ -517,12 +525,6 @@ student_table.heading("Gender", text="Gender")
 student_table.heading("Course Code", text="Course Code")
 student_table.place(x=0,y=80)
 
-conn = sqlite3.connect("students2.db")
-cursor = conn.cursor()
-cursor.execute("CREATE TABLE IF NOT EXISTS courses (course_code TEXT PRIMARY KEY, course_name TEXT)")
-cursor.execute("CREATE TABLE IF NOT EXISTS students (id_no TEXT PRIMARY KEY, name TEXT, gender TEXT, course_code TEXT, FOREIGN KEY(course_code) REFERENCES courses(course_code) ON DELETE CASCADE)")
-conn.commit()
-conn.close()
 # Run the main event loop
 show_all_students()
 window.mainloop()
