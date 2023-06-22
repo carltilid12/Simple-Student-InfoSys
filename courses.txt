@@ -1,3 +1,5 @@
 BSCS
-BSValorant
-BSMinecraft
+BSIT
+BSSTAT
+BSIS
+BSCAA
