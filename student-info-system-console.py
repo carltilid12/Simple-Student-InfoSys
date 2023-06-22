@@ -2,6 +2,7 @@
 Carl Christian G. Tilid BSCS 2
 Simple Student Information Console Version
 """
+
 import json
 import tkinter as tk
 import tkinter.font as font
@@ -77,6 +78,7 @@ while(True):
                                 student.remove(i)
                         courses.remove(deletecourse)
                         updateCourse(courses)
+                        updateStudent(student)
                     case _:
                         print("Canceling Operation")
             else:
