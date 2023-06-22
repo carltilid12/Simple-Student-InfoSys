@@ -391,7 +391,7 @@ def delete_student():
         else:
             messagebox.showerror("Error", "Selected student not found.")
 
-def show_students():
+def show_students(event=None):
     course = course_dropdown.get()
 
     conn = sqlite3.connect("students2.db")
@@ -429,7 +429,7 @@ def show_all_students():
 
 # SEARCH FUNCTIONS
 
-def search_students():
+def search_students(event=None):
     search_query = search_entry.get().lower()  # Get the search query from an Entry widget
 
     # Clear previous selections
@@ -475,6 +475,7 @@ course_button = ttk.Button(window, text="Select Course", command=show_students, 
 course_button.place(x=10, y=10)
 
 course_dropdown = ttk.Combobox(window, values=[course[0] for course in get_courses()], width=23, state="readonly")
+course_dropdown.bind("<<ComboboxSelected>>", show_students)
 course_dropdown.place(x=110, y=10)
 if len([course[0] for course in get_courses()]) > 0:
     course_dropdown.current(0)
@@ -493,6 +494,7 @@ search_button = ttk.Button(window, text="Search Student", command=search_student
 search_button.place(x=10, y=40)
 
 search_entry = ttk.Entry(window, width=26)
+search_entry.bind("<Return>", search_students)
 search_entry.place(x=110, y=40)
 
 add_student_button = ttk.Button(window, text="Add Student", command=add_student, style="TButton")
