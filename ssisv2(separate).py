@@ -441,6 +441,7 @@ def search_students(event=None):
             student_table.selection_add(child)  # Add the matching item to the selection
 
     num_matches = len(student_table.selection())
+    student_table.see(student_table.selection())
     if num_matches > 0:
         return
     else:
