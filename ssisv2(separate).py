@@ -33,8 +33,9 @@ def add_course():
         entry.grid(row=i, column=1, padx=5, pady=5)
 
         entries[field] = entry
+        entry.bind("<Return>", lambda event: save_course())
 
-    def save_course():
+    def save_course(event=None):
         course_code = entries["Course Code"].get()
         course_name = entries["Course Name"].get()
 
@@ -99,6 +100,7 @@ def edit_course():
     new_course_code_entry = Entry(dialog, width=32)
     new_course_code_entry.grid(row=0, column=1, padx=5, pady=5)
     new_course_code_entry.insert(0, selected_course)
+    new_course_code_entry.bind("<Return>", lambda event: save_course())
 
     new_course_name_label = Label(dialog, text="Course Name")
     new_course_name_label.grid(row=1, column=0, padx=5, pady=5)
@@ -106,6 +108,7 @@ def edit_course():
     new_course_name_entry = Entry(dialog, width=32)
     new_course_name_entry.grid(row=1, column=1, padx=5, pady=5)
     new_course_name_entry.insert(0, selected_course_name)
+    new_course_code_entry.bind("<Return>", lambda event: save_course())
 
     def save_course():
         new_course_code = new_course_code_entry.get()
@@ -207,22 +210,35 @@ def add_student():
 
     course_dropdown_values = course_dropdown["values"]  # Get the course dropdown values
 
-    course_dropdown_dialog = ttk.Combobox(dialog, values=course_dropdown_values, state="readonly")
+    course_var = StringVar(dialog)
+    course_var.set(course_dropdown.get())  # Set the default course
+
+    course_dropdown_dialog = ttk.Combobox(dialog, textvariable=course_var, values=course_dropdown_values, state="readonly")
     course_dropdown_dialog.grid(row=len(fields), column=1, padx=5, pady=5)
 
+    year_level_label = Label(dialog, text="Year Level")
+    year_level_label.grid(row=len(fields)+1, column=0, padx=5, pady=5)
+
+    year_level_var = StringVar(dialog)
+    year_level_var.set("2nd")  # Set the default year
+
+    year_level_dialog = ttk.Combobox(dialog, textvariable=year_level_var, values=["1st", "2nd", "3rd", "4th"], state="readonly")
+    year_level_dialog.grid(row=len(fields)+1, column=1, padx=5, pady=5)
+
     gender_label = Label(dialog, text="Gender")
-    gender_label.grid(row=len(fields)+1, column=0, padx=5, pady=5)
+    gender_label.grid(row=len(fields)+2, column=0, padx=5, pady=5)
 
     gender_var = StringVar(dialog)
     gender_var.set("Male")  # Set the default gender
 
     gender_dropdown = ttk.Combobox(dialog, textvariable=gender_var, values=["Male", "Female", "Other"], state="readonly")
-    gender_dropdown.grid(row=len(fields)+1, column=1, padx=5, pady=5)
+    gender_dropdown.grid(row=len(fields)+2, column=1, padx=5, pady=5)
 
     def save_student():
         name = entries["Name"].get()
         id_no = entries["ID No"].get()
         course = course_dropdown_dialog.get()  # Get the selected course from the dropdown menu
+        year_level = year_level_dialog.get() # Get the selected year level from the dropdown menu
         gender = gender_dropdown.get()  # Get the selected gender from the dropdown menu
 
         if name and id_no and course and gender:
@@ -245,8 +261,8 @@ def add_student():
                 messagebox.showerror("Duplicate ID Number", "A student with the same ID number already exists.")
             else:
                 # Insert the student into the students table
-                cursor.execute("INSERT INTO students (ID_No, Name, Gender, Course_Code) VALUES (?, ?, ?, ?)",
-                            (id_no, name, gender, course))
+                cursor.execute("INSERT INTO students (ID_No, Name, Gender, Year_Level, Course_Code) VALUES (?, ?, ?, ?, ?)",
+                            (id_no, name, gender, year_level, course))
 
                 conn.commit()
                 conn.close()
@@ -256,7 +272,7 @@ def add_student():
 
 
     save_button = Button(dialog, text="Save", command=save_student)
-    save_button.grid(row=len(fields) + 2, columnspan=2, padx=5, pady=10)
+    save_button.grid(row=len(fields) + 3, columnspan=2, padx=5, pady=10)
 
     dialog.mainloop()
 
@@ -264,12 +280,12 @@ def edit_student():
     selected_item = student_table.selection()
     if selected_item:
         id_no = student_table.item(selected_item, "values")[0]  # Get the ID_No of the selected student
-        course = student_table.item(selected_item, "values")[3]
+        course = student_table.item(selected_item, "values")[4]
 
         conn = sqlite3.connect("students2.db")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT Name, Id_No, Gender, Course_Code FROM students WHERE ID_No=?", (id_no,))
+        cursor.execute("SELECT Name, Id_No, Gender, Year_Level, Course_Code FROM students WHERE ID_No=?", (id_no,))
         student_info = cursor.fetchone()
 
         conn.close()
@@ -309,19 +325,29 @@ def edit_student():
             course_dropdown_dialog.grid(row=len(fields), column=1, padx=5, pady=5)
             course_dropdown_dialog.set(course)  # Set the current course as the default value
 
+            year_level_label = Label(dialog, text="Year Level")
+            year_level_label.grid(row=len(fields)+1, column=0, padx=5, pady=5)
+
+            year_level_var = StringVar(dialog)
+            year_level_var.set(student_info[3])  # Set the default year
+
+            year_level_dialog = ttk.Combobox(dialog, textvariable=year_level_var, values=["1st", "2nd", "3rd", "4th"], state="readonly")
+            year_level_dialog.grid(row=len(fields)+1, column=1, padx=5, pady=5)
+
             gender_label = Label(dialog, text="Gender")
-            gender_label.grid(row=len(fields)+1, column=0, padx=5, pady=5)
+            gender_label.grid(row=len(fields)+2, column=0, padx=5, pady=5)
 
             gender_var = StringVar(dialog)
             gender_var.set(student_info[2])  # Set the current gender as the default value
 
             gender_dropdown = ttk.Combobox(dialog, textvariable=gender_var, values=["Male", "Female", "Other"], state="readonly")
-            gender_dropdown.grid(row=len(fields)+1, column=1, padx=5, pady=5)
+            gender_dropdown.grid(row=len(fields)+2, column=1, padx=5, pady=5)
 
             def update_student():
                 name = entries["Name"].get()
                 new_id_no = entries["ID No"].get()
                 new_course = course_dropdown_dialog.get()  # Get the selected course from the dropdown menu
+                year_level = year_level_dialog.get() # Get the selected year level from the dropdown menu
                 gender = gender_dropdown.get()  # Get the selected gender from the dropdown menu
 
                 if name and new_id_no and new_course and gender:
@@ -346,8 +372,8 @@ def edit_student():
                         return
                     else:
                         # Update the student information in the database
-                        cursor.execute("UPDATE students SET ID_No=?, Name=?, Gender=?, Course_Code=? WHERE ID_No=?",
-                                    (new_id_no, name, gender, new_course, id_no))
+                        cursor.execute("UPDATE students SET ID_No=?, Name=?, Gender=?, Year_Level=?, Course_Code=? WHERE ID_No=?",
+                                    (new_id_no, name, gender, year_level, new_course, id_no))
 
                     conn.commit()
                     conn.close()
@@ -357,7 +383,7 @@ def edit_student():
 
 
             update_button = Button(dialog, text="Update", command=update_student)
-            update_button.grid(row=len(fields) + 2, columnspan=2, padx=5, pady=10)
+            update_button.grid(row=len(fields) + 3, columnspan=2, padx=5, pady=10)
 
             dialog.mainloop()
         else:
@@ -367,12 +393,11 @@ def delete_student():
     selected_item = student_table.selection()
     if selected_item:
         id_no = student_table.item(selected_item, "values")[0]  # Get the ID_No of the selected student
-        course = student_table.item(selected_item, "values")[3]
 
         conn = sqlite3.connect("students2.db")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT ID_No, Name, Gender, Course_Code FROM students WHERE ID_No=?", (id_no,))
+        cursor.execute("SELECT ID_No, Name, Gender, Year_Level, Course_Code FROM students WHERE ID_No=?", (id_no,))
         student_info = cursor.fetchone()
 
         conn.close()
@@ -399,7 +424,7 @@ def show_students(event=None):
     conn = sqlite3.connect("students2.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id_no, name, gender, course_code FROM students WHERE course_code = ?", (course,))
+    cursor.execute("SELECT id_no, name, gender, year_level, course_code FROM students WHERE course_code = ?", (course,))
     students = cursor.fetchall()
 
     conn.close()
@@ -409,7 +434,7 @@ def show_students(event=None):
 
     # Display student information in a table
     for student in students:
-        student_table.insert('', 'end', values=(student[0], student[1], student[2], student[3]))
+        student_table.insert('', 'end', values=(student[0], student[1], student[2], student[3], student[4]))
 
 
 def show_all_students():
@@ -419,14 +444,14 @@ def show_all_students():
     conn = sqlite3.connect("students2.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id_no, name, gender, course_code FROM students")
+    cursor.execute("SELECT id_no, name, gender, year_level, course_code FROM students")
     students = cursor.fetchall()
 
     conn.close()
 
     # Add students to the tree view
     for student in students:
-        student_table.insert('', 'end', values=(student[0], student[1], student[2], student[3]))
+        student_table.insert('', 'end', values=(student[0], student[1], student[2], student[3], student[4]))
 
 
 # SEARCH FUNCTIONS
@@ -448,6 +473,15 @@ def search_students(event=None):
         return
     else:
         messagebox.showinfo("Search", "No matching students found.")
+
+# SORT TABLE
+def sort_column(tree, column, reverse=False):
+    data = [(tree.set(child, column), child) for child in tree.get_children("")]
+    data.sort(reverse=reverse)
+    for index, (_, child) in enumerate(data):
+        tree.move(child, "", index)
+    tree.heading(column, command=lambda c=column: sort_column(tree, c, not reverse))
+
 
 
 ###################### Create the main window ###########################
@@ -478,7 +512,7 @@ conn = sqlite3.connect("students2.db")
 cursor = conn.cursor()
 conn.execute("PRAGMA foreign_keys = ON")  # Enable foreign key support if not already enabled
 cursor.execute("CREATE TABLE IF NOT EXISTS courses (course_code TEXT PRIMARY KEY, course_name TEXT)")
-cursor.execute("CREATE TABLE IF NOT EXISTS students (id_no TEXT PRIMARY KEY, name TEXT, gender TEXT, course_code TEXT, FOREIGN KEY(course_code) REFERENCES courses(course_code) ON DELETE CASCADE ON UPDATE CASCADE)")
+cursor.execute("CREATE TABLE IF NOT EXISTS students (id_no TEXT PRIMARY KEY, name TEXT, gender TEXT, year_level TEXT, course_code TEXT, FOREIGN KEY(course_code) REFERENCES courses(course_code) ON DELETE CASCADE ON UPDATE CASCADE)")
 conn.commit()
 conn.close()
 
@@ -522,14 +556,23 @@ show_all_students_button = ttk.Button(window, text="Show ALL Students", command=
 show_all_students_button.place(x=580, y=40)
 
 # Create a table to display student information
-student_table = ttk.Treeview(window, columns=("ID No.", "Name", "Gender", "Course Code"), show="headings", height=20, style="Treeview")
+student_table = ttk.Treeview(window, columns=("ID No.", "Name", "Gender", "Year Level", "Course Code"), show="headings", height=20, style="Treeview")
+
+student_table.column("ID No.", width=100, stretch='no')
+student_table.column("Name", width=400, stretch=False)
+student_table.column("Gender", width=100)
+student_table.column("Year Level", width=100)
+student_table.column("Course Code", width=100)
+
 student_table.heading("ID No.", text="ID No")
 student_table.heading("Name", text="Name")
 student_table.heading("Gender", text="Gender")
+student_table.heading("Year Level", text="Year Level")
 student_table.heading("Course Code", text="Course Code")
 student_table.place(x=0,y=80)
 
-
+for column in ("ID No.", "Name", "Gender", "Year Level", "Course Code"):
+    student_table.heading(column, text=column, command=lambda c=column: sort_column(student_table, c))
 
 # Run the main event loop
 show_all_students()
