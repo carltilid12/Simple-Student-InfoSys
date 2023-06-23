@@ -65,7 +65,7 @@ def add_course():
 
     save_button = Button(dialog, text="Save", command=save_course)
     save_button.grid(row=len(fields), columnspan=2, padx=5, pady=10)
-
+    dialog.focus_set()
     dialog.mainloop()
 
 def edit_course():
@@ -134,7 +134,7 @@ def edit_course():
 
     save_button = Button(dialog, text="Save", command=save_course)
     save_button.grid(row=2, columnspan=2, padx=5, pady=10)
-
+    dialog.focus_set()
     dialog.mainloop()
 
 def get_courses():
@@ -181,6 +181,7 @@ def add_student():
     dialog = Toplevel()
     dialog.title("Add Student")
 
+    
     # CENTER POP UP
     dialog_width = 300
     dialog_height = 200
@@ -274,7 +275,7 @@ def add_student():
 
     save_button = Button(dialog, text="Save", command=save_student)
     save_button.grid(row=len(fields) + 3, columnspan=2, padx=5, pady=10)
-
+    dialog.focus_set()
     dialog.mainloop()
 
 def edit_student(event=None):
@@ -387,6 +388,7 @@ def edit_student(event=None):
             update_button = Button(dialog, text="Update", command=update_student)
             update_button.grid(row=len(fields) + 3, columnspan=2, padx=5, pady=10)
             edit_student.running = False
+            dialog.focus_set()
             dialog.mainloop()
         else:
             messagebox.showerror("Error", "Selected student not found.")
@@ -489,7 +491,7 @@ def sort_column(tree, column, reverse=False):
 
 window = tk.Tk()
 window.title("Student Information Management System")
-window.geometry("800x600")
+window.geometry("800x640")
 window.configure(bg="#a41c20")
 window.resizable(False, False)
 
@@ -560,10 +562,10 @@ show_all_students_button = ttk.Button(window, text="Show ALL Students", command=
 show_all_students_button.place(x=580, y=40)
 
 # Create a table to display student information
-student_table = ttk.Treeview(window, columns=("ID No.", "Name", "Gender", "Year Level", "Course Code"), show="headings", height=20, style="Treeview")
+student_table = ttk.Treeview(window, columns=("ID No.", "Name", "Gender", "Year Level", "Course Code"), show="headings", height=25, style="Treeview")
 
 student_table.column("ID No.", width=100, stretch='no')
-student_table.column("Name", width=400, stretch=False)
+student_table.column("Name", width=384, stretch=False)
 student_table.column("Gender", width=100)
 student_table.column("Year Level", width=100)
 student_table.column("Course Code", width=100)
@@ -577,6 +579,11 @@ student_table.place(x=0,y=80)
 edit_student.running = False
 student_table.bind("<Double-Button-1>", lambda event: edit_student() if student_table.focus() else None)
 
+scrollbar = ttk.Scrollbar(window, orient="vertical", command=student_table.yview)
+student_table.configure(yscrollcommand=scrollbar.set)
+
+# Place the Treeview and scrollbar
+scrollbar.place(x=785, y=80, height=525)
 
 for column in ("ID No.", "Name", "Gender", "Year Level", "Course Code"):
     student_table.heading(column, text=column, command=lambda c=column: sort_column(student_table, c))

@@ -408,7 +408,20 @@ delete_student_button.place(x=480, y=40)
 
 show_all_students_button = ttk.Button(window, text="Show ALL Students", command=show_all_students, width=26)
 show_all_students_button.place(x=580, y=40)
+conn = sqlite3.connect("students.db")
+cursor = conn.cursor()
+# Execute PRAGMA compile_options to get the compile-time options
+cursor.execute("PRAGMA compile_options;")
+options = cursor.fetchall()
 
+# Print the compile options to check if foreign_keys is included
+for option in options:
+    print(option)
+    
+conn.execute("PRAGMA foreign_keys = ON")
+conn.execute("PRAGMA foreign_keys;")
+conn.commit()
+conn.close()
 # Create a table to display student information
 student_table = ttk.Treeview(window, columns=("ID No.", "Name", "Gender", "Course Code"), show="headings", height=20, style="Treeview")
 student_table.heading("ID No.", text="ID No")
