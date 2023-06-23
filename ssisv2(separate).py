@@ -115,9 +115,10 @@ def edit_course():
             conn = sqlite3.connect("students2.db")
             cursor = conn.cursor()
 
+            conn.execute("PRAGMA foreign_keys = 1")
             # Update the course name and course code in the courses table
             cursor.execute("UPDATE courses SET course_code = ?, course_name = ? WHERE course_code = ?", (new_course_code, new_course_name, selected_course))
-
+            
             conn.commit()
             conn.close()
 
@@ -146,7 +147,7 @@ def get_courses():
 
 def delete_course():
     selected_course = course_dropdown.get()
-
+    
     # Prompt for confirmation
     confirm = messagebox.askyesno("Delete Course", f"Are you sure you want to delete the course '{selected_course}'?")
 
@@ -154,6 +155,7 @@ def delete_course():
         conn = sqlite3.connect("students2.db")
         cursor = conn.cursor()
 
+        conn.execute("PRAGMA foreign_keys = 1")
         # Delete the course from the courses table
         cursor.execute("DELETE FROM courses WHERE course_code=?", (selected_course,))
 
@@ -474,8 +476,9 @@ treeViewStyle.configure("Treeview",
 
 conn = sqlite3.connect("students2.db")
 cursor = conn.cursor()
+conn.execute("PRAGMA foreign_keys = ON")  # Enable foreign key support if not already enabled
 cursor.execute("CREATE TABLE IF NOT EXISTS courses (course_code TEXT PRIMARY KEY, course_name TEXT)")
-cursor.execute("CREATE TABLE IF NOT EXISTS students (id_no TEXT PRIMARY KEY, name TEXT, gender TEXT, course_code TEXT, FOREIGN KEY(course_code) REFERENCES courses(course_code) ON DELETE CASCADE)")
+cursor.execute("CREATE TABLE IF NOT EXISTS students (id_no TEXT PRIMARY KEY, name TEXT, gender TEXT, course_code TEXT, FOREIGN KEY(course_code) REFERENCES courses(course_code) ON DELETE CASCADE ON UPDATE CASCADE)")
 conn.commit()
 conn.close()
 
@@ -525,6 +528,8 @@ student_table.heading("Name", text="Name")
 student_table.heading("Gender", text="Gender")
 student_table.heading("Course Code", text="Course Code")
 student_table.place(x=0,y=80)
+
+
 
 # Run the main event loop
 show_all_students()
