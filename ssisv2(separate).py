@@ -108,9 +108,9 @@ def edit_course():
     new_course_name_entry = Entry(dialog, width=32)
     new_course_name_entry.grid(row=1, column=1, padx=5, pady=5)
     new_course_name_entry.insert(0, selected_course_name)
-    new_course_code_entry.bind("<Return>", lambda event: save_course())
+    new_course_name_entry.bind("<Return>", lambda event: save_course())
 
-    def save_course():
+    def save_course(event=None):
         new_course_code = new_course_code_entry.get()
         new_course_name = new_course_name_entry.get()
 
@@ -204,6 +204,7 @@ def add_student():
         entry.grid(row=i, column=1, padx=5, pady=5)
 
         entries[field] = entry
+        entry.bind("<Return>", lambda event: save_student())
 
     course_label = Label(dialog, text="Course Code")
     course_label.grid(row=len(fields), column=0, padx=5, pady=5)
@@ -234,7 +235,7 @@ def add_student():
     gender_dropdown = ttk.Combobox(dialog, textvariable=gender_var, values=["Male", "Female", "Other"], state="readonly")
     gender_dropdown.grid(row=len(fields)+2, column=1, padx=5, pady=5)
 
-    def save_student():
+    def save_student(event=None):
         name = entries["Name"].get()
         id_no = entries["ID No"].get()
         course = course_dropdown_dialog.get()  # Get the selected course from the dropdown menu
@@ -276,7 +277,7 @@ def add_student():
 
     dialog.mainloop()
 
-def edit_student():
+def edit_student(event=None):
     selected_item = student_table.selection()
     if selected_item:
         id_no = student_table.item(selected_item, "values")[0]  # Get the ID_No of the selected student
@@ -315,6 +316,7 @@ def edit_student():
                 entry.insert(0, student_info[i])  # Set the current student information in the entry fields
 
                 entries[field] = entry
+                entry.bind("<Return>", lambda event: update_student())
 
             course_label = Label(dialog, text="Course Code")
             course_label.grid(row=len(fields), column=0, padx=5, pady=5)
@@ -343,7 +345,7 @@ def edit_student():
             gender_dropdown = ttk.Combobox(dialog, textvariable=gender_var, values=["Male", "Female", "Other"], state="readonly")
             gender_dropdown.grid(row=len(fields)+2, column=1, padx=5, pady=5)
 
-            def update_student():
+            def update_student(event=None):
                 name = entries["Name"].get()
                 new_id_no = entries["ID No"].get()
                 new_course = course_dropdown_dialog.get()  # Get the selected course from the dropdown menu
@@ -384,42 +386,41 @@ def edit_student():
 
             update_button = Button(dialog, text="Update", command=update_student)
             update_button.grid(row=len(fields) + 3, columnspan=2, padx=5, pady=10)
-
+            edit_student.running = False
             dialog.mainloop()
         else:
             messagebox.showerror("Error", "Selected student not found.")
 
 def delete_student():
-    selected_item = student_table.selection()
-    if selected_item:
-        id_no = student_table.item(selected_item, "values")[0]  # Get the ID_No of the selected student
+    selected_items = student_table.selection()
 
-        conn = sqlite3.connect("students2.db")
-        cursor = conn.cursor()
+    if selected_items:
+        confirm = messagebox.askyesno("Delete Student(s)", "Are you sure you want to delete the selected student(s)?")
+        if confirm:
+            conn = sqlite3.connect("students2.db")
+            cursor = conn.cursor()
 
-        cursor.execute("SELECT ID_No, Name, Gender, Year_Level, Course_Code FROM students WHERE ID_No=?", (id_no,))
-        student_info = cursor.fetchone()
+            for selected_item in selected_items:
+                id_no = student_table.item(selected_item, "values")[0]  # Get the ID_No of the selected student
 
-        conn.close()
+                cursor.execute("SELECT ID_No, Name, Gender, Year_Level, Course_Code FROM students WHERE ID_No=?", (id_no,))
+                student_info = cursor.fetchone()
 
-        if student_info:
-            confirm = messagebox.askyesno("Delete Student", "Are you sure you want to delete this student?")
-            if confirm:
-                conn = sqlite3.connect("students2.db")
-                cursor = conn.cursor()
+                if student_info:
+                    # Delete the student from the students table
+                    cursor.execute("DELETE FROM students WHERE ID_No=?", (id_no,))
 
-                # Delete the student from the course table
-                cursor.execute(f"DELETE FROM students WHERE ID_No=?", (id_no,))
+            conn.commit()
+            conn.close()
 
-                conn.commit()
-                conn.close()
+            show_all_students()
+    else:
+        messagebox.showerror("Error", "No students selected.")
 
-                show_all_students()
-        else:
-            messagebox.showerror("Error", "Selected student not found.")
 
 def show_students(event=None):
     course = course_dropdown.get()
+    course_name.configure(text=[course[1] for course in get_courses() if course[0] == course_dropdown.get()][0] or "")
 
     conn = sqlite3.connect("students2.db")
     cursor = conn.cursor()
@@ -526,6 +527,9 @@ course_dropdown.place(x=110, y=10)
 if len([course[0] for course in get_courses()]) > 0:
     course_dropdown.current(0)
 
+course_name = ttk.Label(window, text=[course[1] for course in get_courses() if course[0] == course_dropdown.get()][0] or "", width=34)
+course_name.place(x=580, y=10)
+
 add_course_button = ttk.Button(window, text="Add Course ", command=add_course, style="TButton")
 add_course_button.place(x=280, y=10)
 
@@ -552,7 +556,7 @@ edit_student_button.place(x=380, y=40)
 delete_student_button = ttk.Button(window, text="Delete Student", command=delete_student, style="TButton")
 delete_student_button.place(x=480, y=40)
 
-show_all_students_button = ttk.Button(window, text="Show ALL Students", command=show_all_students, width=26)
+show_all_students_button = ttk.Button(window, text="Show ALL Students", command=show_all_students, width=33)
 show_all_students_button.place(x=580, y=40)
 
 # Create a table to display student information
@@ -570,6 +574,9 @@ student_table.heading("Gender", text="Gender")
 student_table.heading("Year Level", text="Year Level")
 student_table.heading("Course Code", text="Course Code")
 student_table.place(x=0,y=80)
+edit_student.running = False
+student_table.bind("<Double-Button-1>", lambda event: edit_student() if student_table.focus() else None)
+
 
 for column in ("ID No.", "Name", "Gender", "Year Level", "Course Code"):
     student_table.heading(column, text=column, command=lambda c=column: sort_column(student_table, c))
