@@ -43,17 +43,15 @@ def add_course():
             conn = sqlite3.connect("students2.db")
             cursor = conn.cursor()
 
-            # Check if the course code already exists in the table
-            cursor.execute("SELECT COUNT(*) FROM courses WHERE course_code=?", (course_code,))
-            count = cursor.fetchone()[0]
+            cursor.execute("SELECT course_code FROM courses WHERE course_code=?", (course_code,))
+            existing_course = cursor.fetchone()
 
-            if count > 0:
-                # Update the existing course code's course name
-                cursor.execute("UPDATE courses SET course_name=? WHERE course_code=?", (course_name, course_code))
+            if existing_course:
+                messagebox.showerror("Duplicate Course Code", "A Course with the same Course Code already exists.")
             else:
-                # Insert a new course code and course name
+                # Insert the student into the students table
                 cursor.execute("INSERT INTO courses (course_code, course_name) VALUES (?, ?)", (course_code, course_name))
-
+ 
             conn.commit()
             conn.close()
 
@@ -113,17 +111,21 @@ def edit_course():
     def save_course(event=None):
         new_course_code = new_course_code_entry.get()
         new_course_name = new_course_name_entry.get()
+        conn = sqlite3.connect("students2.db")
+        cursor = conn.cursor()
 
         if new_course_code and new_course_name:
-            conn = sqlite3.connect("students2.db")
-            cursor = conn.cursor()
-
             conn.execute("PRAGMA foreign_keys = 1")
-            # Update the course name and course code in the courses table
-            cursor.execute("UPDATE courses SET course_code = ?, course_name = ? WHERE course_code = ?", (new_course_code, new_course_name, selected_course))
+
+            cursor.execute("SELECT course_code FROM courses WHERE course_code=?", (new_course_code,))
+            existing_course = cursor.fetchone()
+
+            if existing_course:
+                messagebox.showerror("Duplicate Course Code", "A Course with the same Course Code already exists.")
+            else:
+                # Insert the student into the students table
+                cursor.execute("UPDATE courses SET course_code = ?, course_name = ? WHERE course_code = ?", (new_course_code, new_course_name, selected_course))
             
-            conn.commit()
-            conn.close()
 
             # Update the course dropdown menu with the new course code and name
             course_dropdown["values"] = [course[0] for course in get_courses()]
@@ -132,6 +134,8 @@ def edit_course():
             dialog.destroy()
             show_students()
 
+        conn.commit()
+        conn.close()
     save_button = Button(dialog, text="Save", command=save_course)
     save_button.grid(row=2, columnspan=2, padx=5, pady=10)
     dialog.focus_set()
